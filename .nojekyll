@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Quiz - Data Science & Analytics</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #38bdf8;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --border: #334155;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            max-width: 800px;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .score-board {
+            background-color: var(--card-bg);
+            padding: 15px 30px;
+            border-radius: 50px;
+            border: 1px solid var(--border);
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+        }
+
+        .quiz-container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .question-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background-color: #0f172a;
+            color: var(--text-color);
+            border: 1px solid var(--border);
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .option-btn:hover:not([disabled]) {
+            border-color: var(--primary);
+            background-color: #1e293b;
+        }
+
+        .option-btn:disabled {
+            cursor: not-allowed;
+        }
+
+        .option-btn.correct {
+            background-color: rgba(34, 197, 94, 0.2) !important;
+            border-color: var(--success) !important;
+            color: #4ade80;
+            font-weight: bold;
+        }
+
+        .option-btn.incorrect {
+            background-color: rgba(239, 68, 68, 0.2) !important;
+            border-color: var(--danger) !important;
+            color: #f87171;
+        }
+
+        .feedback {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            display: none;
+            line-height: 1.4;
+        }
+
+        .feedback.show {
+            display: block;
+            background-color: #0f172a;
+            border-left: 4px solid var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Data Analytics Interactive Quiz</h1>
+        <p style="color: var(--text-muted)">Practice your knowledge with 30 questions based on the most searched academic exam and job interview topics in the industry.</p>
+    </header>
+
+    <div class="score-board">
+        Score: <span id="score">0</span> / <span id="total-answered">0</span> (Total: 30)
+    </div>
+
+    <div class="quiz-container" id="quiz"></div>
+
+    <script>
+        const questions = [
+            // Block 1: Data Analytics Important Questions (Foundations & Theory)
+            {
+                q: "1. What is predictive analytics, and how does it differ from prescriptive analytics?",
+                options: [
+                    "Predictive analytics focuses entirely on past logs, while prescriptive analytics cleans raw data automatically.",
+                    "Predictive analytics forecasts what might happen using historical data; prescriptive analytics evaluates outcomes and recommends the best course of action.",
+                    "Both terms mean the same thing, only changing based on the specific BI tool used for building reports."
+                ],
+                correct: 1,
+                explanation: "Predictive analytics projects future scenarios. Prescriptive analytics goes further by suggesting concrete actions based on those projections."
+            },
+            {
+                q: "2. What is the difference between structured and unstructured data?",
+                options: [
+                    "Structured data has a strict, predefined format (e.g., SQL tables); unstructured data lacks a fixed structural architecture (e.g., videos, emails).",
+                    "Structured data represents encrypted files, while unstructured data refers to public-domain open data.",
+                    "Structured data only exists within Excel spreadsheets, whereas unstructured data runs exclusively on cloud servers."
+                ],
+                correct: 0,
+                explanation: "The tabular schema and rigid constraints define structured data, while free-form files fall into unstructured data."
+            },
+            {
+                q: "3. What does the ETL process stand for, and why is it important?",
+                options: [
+                    "It stands for Estimated Testing Logistics, serving to approve machine learning models in production.",
+                    "It is a network transfer protocol focused on moving spreadsheets from local drives to the cloud.",
+                    "It stands for Extract, Transform, Load. It gathers data from multiple sources, cleans/standardizes it, and loads it into a central repository."
+                ],
+                correct: 2,
+                explanation: "ETL is the core foundation of data engineering and integration: Extracting, Transforming, and Loading."
+            },
+            {
+                q: "4. What is data cleansing, and why does it consume a significant amount of time?",
+                options: [
+                    "It identifies and fixes corrupted, inconsistent, or duplicate records. It takes time because real-world data is inherently messy.",
+                    "It is the process of deleting legacy files. It takes time because older servers have slow transfer rates.",
+                    "It consists of converting Python script code into SQL queries to optimize runtime processing."
+                ],
+                correct: 0,
+                explanation: "Real-world pipelines are noisy. Cleaning data prevents the 'garbage in, garbage out' trap of building dashboards on faulty baselines."
+            },
+            {
+                q: "5. What is the primary difference between a Relational (SQL) and a Non-Relational (NoSQL) Database?",
+                options: [
+                    "SQL stores data in basic text files, while NoSQL operates purely inside volatile RAM.",
+                    "Relational databases organize data into tables with rigid schemas and keys; NoSQL offers flexibility, storing data as documents, graphs, or key-value pairs.",
+                    "SQL engines do not accept numerical data, whereas NoSQL structures accept any characters."
+                ],
+                correct: 1,
+                explanation: "The rigid layout schema of tables defines relational SQL, whereas NoSQL provides horizontal scalability and flexibility for Big Data."
+            },
+            {
+                q: "6. What is Exploratory Data Analysis (EDA)?",
+                options: [
+                    "The final security auditing phase executed on datasets by corporate legal teams.",
+                    "An initial approach to analyzing datasets to summarize their main characteristics and distributions, often using visual methods.",
+                    "The act of scraping open web data automatically without prior proxy authorization."
+                ],
+                correct: 1,
+                explanation: "EDA allows analysts to understand data distributions, detect anomalies, and test hypotheses visually before modeling."
+            },
+            {
+                q: "7. What are Outliers, and how should a data analyst handle them?",
+                options: [
+                    "Data points that deviate drastically from the rest of the dataset. An analyst must investigate their root cause before deciding to drop or keep them.",
+                    "Syntax errors in the source code script that completely halt data warehouse loading routines.",
+                    "Empty record spaces inside a database column that must be filled with a zero value."
+                ],
+                correct: 0,
+                explanation: "Outliers are anomalies. They can be system errors (removable) or signal valuable hidden behavior like credit card fraud (must be kept)."
+            },
+            {
+                q: "8. What does the concept of Data Governance represent?",
+                options: [
+                    "The physical on-premise infrastructure consisting of cables and servers inside a technology company.",
+                    "A collection of processes, policies, roles, and metrics that ensure secure, private, accurate, and compliant use of corporate data.",
+                    "The operational engineering pod focused exclusively on coding predictive neural network models."
+                ],
+                correct: 1,
+                explanation: "Governance deals with operational rules, regulatory compliance (like GDPR/LGPD), data security, and access control management."
+            },
+            {
+                q: "9. What is the utility of the Central Limit Theorem in analytical statistics?",
+                options: [
+                    "It guarantees that database scale sizes never exceed cloud server storage thresholds.",
+                    "It dictates that as a sample size grows larger, the distribution of sample means approaches a normal distribution, regardless of the population shape.",
+                    "It is used to compute the maximum processing throughput speed of a distributed Big Data cluster."
+                ],
+                correct: 1,
+                explanation: "This theorem is vital for statistical inference because it justifies using normal distribution rules even on non-normal populations."
+            },
+            {
+                q: "10. What are Metadata?",
+                options: [
+                    "Analytical data structured strictly into compressed binary execution files.",
+                    "They are data about data, describing traits like the author, column data types, and creation timestamps.",
+                    "The bottom half of an analytical table cluster used for running temporary smoke tests."
+                ],
+                correct: 1,
+                explanation: "Metadata acts as a cataloging dictionary, describing structural properties of data sources to make them findable."
+            },
+
+            // Block 2: Data Analytics Interview Questions (Technical & Logical Challenges)
+            {
+                q: "11. How would you handle missing values in a dataset?",
+                options: [
+                    "By wiping the complete dataset entirely and triggering collection tasks from scratch.",
+                    "By assessing the context: dropping rows if the missing volume is small, or applying imputation techniques (like mean, median, or mode).",
+                    "By ignoring them completely, since modern algorithms process null fields natively without any metric deviations."
+                ],
+                correct: 1,
+                explanation: "Handling depends on proportion: surgical drop rows when safe, or strategic statistical imputation to preserve sample size."
+            },
+            {
+                q: "12. In SQL, what is the difference between the WHERE and HAVING clauses?",
+                options: [
+                    "WHERE filters individual rows before grouping takes place; HAVING filters aggregated results generated by a GROUP BY clause.",
+                    "WHERE only operates on text-based datasets, while HAVING exclusively manipulates currency structures.",
+                    "HAVING performs indexed scans, while WHERE triggers full scans across database servers."
+                ],
+                correct: 0,
+                explanation: "WHERE applies filters to individual records; HAVING applies conditions to consolidated groups formed by aggregate functions."
+            },
+            {
+                q: "13. What is an A/B Test, and how do you validate if the test result was statistically significant?",
+                options: [
+                    "A hardware profiling test. It is validated by comparing raw CPU clock cycles between two machines.",
+                    "A randomized experiment with two variants shown to users. It is validated by checking if the calculated p-value is lower than the significance level (typically 0.05).",
+                    "A code duplication linting check triggered automatically inside a git version control branch."
+                ],
+                correct: 1,
+                explanation: "A p-value below the threshold (5%) proves that the performance difference between variants did not occur by random chance."
+            },
+            {
+                q: "14. Explain what Overfitting means in analytical modeling.",
+                options: [
+                    "When a machine learning model fits training data too closely, learning noise and specific fluctuations, causing poor performance on new unseen data.",
+                    "A sudden processing bottleneck that forces server infrastructure to crash during model evaluations.",
+                    "When a data engine exceeds the allocated hard drive threshold volume assigned to warehouse tables."
+                ],
+                correct: 0,
+                explanation: "Overfitted models 'memorize' training histories instead of generalizing patterns, making them ineffective for real-world predictions."
+            },
+            {
+                q: "15. What does a SQL JOIN operation do, and what are its most common types?",
+                options: [
+                    "It combines rows from two or more tables based on a related key column. Common types include INNER, LEFT, and FULL JOIN.",
+                    "It purges duplicate entries by binding identical entities into temporary view tables.",
+                    "It rewrites storage allocation index properties to accelerate sluggish execution pipelines."
+                ],
+                correct: 0,
+                explanation: "JOINs pull relational tables together by matching shared data points (such as primary and foreign keys)."
+            },
+            {
+                q: "16. How would you explain the difference between Correlation and Causality?",
+                options: [
+                    "They are interchangeable terms; if two metrics move together, one is definitely driving the other directly.",
+                    "Correlation indicates variables moving together; Causality proves one directly forces the change in the other. Correlation does not imply causation.",
+                    "Causality maps financial statement values, while correlation works solely across social media metrics."
+                ],
+                correct: 1,
+                explanation: "Two metrics can rise simultaneously due to external factors (like seasonality) without any direct causal link existing between them."
+            },
+            {
+                q: "17. What is a Confusion Matrix, and what is its primary purpose?",
+                options: [
+                    "A layout table comparing actual true targets with model classification predictions, mapping out correct hits alongside false positives and false negatives.",
+                    "A systemic data corruption error that shifts security access keys across database rows.",
+                    "The disorganized UI structure of a business intelligence view that impairs user readability metrics."
+                ],
+                correct: 0,
+                explanation: "Confusion matrices map classification errors and true values, helping to derive metrics like Precision, Recall, and F1-Score."
+            },
+            {
+                q: "18. What are Window Functions in SQL?",
+                options: [
+                    "Pop-up modal windows built into query software editors to help users structure commands.",
+                    "Functions that perform calculations across a set of table rows related to the current row without collapsing them into a single summary output row.",
+                    "Security scripts that terminate open connections if a query execution takes too long."
+                ],
+                correct: 1,
+                explanation: "Using the OVER clause, window functions retain individual row records while simultaneously computing rolling averages, ranks, or partitions."
+            },
+            {
+                q: "19. What does Data Normalization mean, and when should it be applied?",
+                options: [
+                    "Rescaling numeric variables to a standard range, useful when features possess vastly different orders of magnitude.",
+                    "Structuring work shifts so that all analyst pods access databases during uniform working hours.",
+                    "Purging extreme outliers to force a dirty dataset into forming a pristine normal bell curve shape."
+                ],
+                correct: 0,
+                explanation: "Bringing data scales (e.g., ages 0-100 and income 0-1,000,000) into a shared range prevents distance algorithms from being skewed by large magnitudes."
+            },
+            {
+                q: "20. What does the K-Means algorithm do, and what type of learning style does it fit?",
+                options: [
+                    "It predicts financial stock index intervals over time, fitting supervised regression learning styles.",
+                    "It partitions data into distinct clusters based on geometric proximity, fitting UNSUPERVISED machine learning styles.",
+                    "It parses text string structures to clean code syntax errors, fitting natural language processing pipelines."
+                ],
+                correct: 1,
+                explanation: "K-Means uncovers hidden groupings in unlabeled datasets by grouping points closest to calculated centroids."
+            },
+
+            // Block 3: Data Analyst Interview Questions and Answers (Practical & Business Cases)
+            {
+                q: "21. If a marketing manager claims conversion rates dropped 15% last week, what is your initial analytical step?",
+                options: [
+                    "Recommend restructuring the sales headcount and freezing all digital ad spend pipelines immediately.",
+                    "Deconstruct the macro KPI by smaller dimensions (device types, channels, regions) and check data pipeline ingestion health.",
+                    "Redesign reporting charts with alternative color shades to mask the drop before executive meetings."
+                ],
+                correct: 1,
+                explanation: "Slicing macro metrics down into micro dimensions helps pinpoint the exact segment where the conversion funnel broke down."
+            },
+            {
+                q: "22. How would you translate the technical term 'p-value' to a non-technical business stakeholder?",
+                options: [
+                    "As a metric of certainty showing whether a business change was driven by actual substance or just lucky random chance.",
+                    "As the total compute memory required to sustain an active corporate marketing pipeline across the cloud.",
+                    "As the baseline cost-per-user value that accumulates when visitors load front-end digital pages."
+                ],
+                correct: 0,
+                explanation: "Translating statistical concepts into intuitive business language is a core requirement for impactful data translation."
+            },
+            {
+                q: "23. What is Data Storytelling, and how do you structure an analytical deck for executive leaders?",
+                options: [
+                    "Reading line-by-line through heavy data tables containing thousands of unformatted cell blocks.",
+                    "Structuring discoveries around a clear narrative: Context (problem), Insight (conflict/discovery), and Recommendation (resolution).",
+                    "Weaving humorous fictional tales during slide decks to keep executive stakeholders entertained during fiscal reviews."
+                ],
+                correct: 1,
+                explanation: "Executives require clarity and actionable decisions. Binding statistics to business problems builds a clear path forward."
+            },
+            {
+                q: "24. Imagine you are tasked with building a sales dashboard. How do you choose which KPIs to display?",
+                options: [
+                    "By embedding every numeric database field available to maximize visual complexity and reporting volume.",
+                    "By selecting metrics tailored to the user profile: strategic/financial metrics for executives; granular operational metrics for sales reps.",
+                    "By exclusively picking indicators that present upward positive trends during the current month."
+                ],
+                correct: 1,
+                explanation: "Dashboards must be actionable. High-level KPIs guide strategic paths, whereas granular metrics assist day-to-day operations."
+            },
+            {
+                q: "25. What would you do if you encountered conflicting metric values from two sources (e.g., Google Analytics vs Internal DB)?",
+                options: [
+                    "Delete data rows displaying lower monetary value to reconcile inconsistencies quickly.",
+                    "Map out tracking methodologies for both systems and align with business teams to establish a standard 'single source of truth'.",
+                    "Calculate a basic average of both numbers and display that consolidated estimate across reporting views."
+                ],
+                correct: 1,
+                explanation: "Discrepancies happen due to distinct collection methods (cookies vs transaction ledger logs). Defining the master source maintains reporting integrity."
+            },
+            {
+                q: "26. How do you handle tight deadlines when complex ad-hoc analytics requests drop in last minute?",
+                options: [
+                    "Ignore the request entirely until stakeholders formalize their demands weeks in advance via email workflows.",
+                    "Apply MVP (Minimum Viable Product) concepts: deliver rapid descriptive insights for the core issue and schedule deeper modeling for later.",
+                    "Provide random placeholder figures to hit the deadline hour and quietly correct report values days later."
+                ],
+                correct: 1,
+                explanation: "Providing an MVP answer mitigates flying blind, addressing the immediate pain point while saving deeper tuning for an organized timeline."
+            },
+            {
+                q: "27. Why is the relationship between Customer Acquisition Cost (CAC) and Lifetime Value (LTV) critical?",
+                options: [
+                    "LTV thresholds must fall beneath CAC boundaries to sustain instant capital liquidity.",
+                    "They measure financial sustainability: LTV (the customer's total financial worth) should ideally be at least 3x higher than CAC.",
+                    "They are used strictly to balance warehouse stock inventories for legacy manufacturing plants."
+                ],
+                correct: 1,
+                explanation: "If acquiring a customer costs more than the gross revenue they return throughout their lifecycle (CAC > LTV), the business model is unsustainable."
+            },
+            {
+                q: "28. How do you define a 'Vanity Metric'?",
+                options: [
+                    "Indicators that measure the artistic satisfaction and aesthetic layout choices of UX design pods.",
+                    "Metrics that look impressive on paper (e.g., total sign-ups or likes) but don't translate to business value or inform strategy.",
+                    "Hardware speed measurements generated by high-end premium cloud server nodes."
+                ],
+                correct: 1,
+                explanation: "If a metric inflates egos but fails to shift revenue, conversion rates, or retention metrics, it qualifies as a vanity metric."
+            },
+            {
+                q: "29. What is Cohort Analysis, and why is it useful for studying customer retention?",
+                options: [
+                    "An analytical method grouping users who share a common event/starting date, tracking their retention or churn behavior over time.",
+                    "A stress test routine simulating high concurrent request volumes to intentionally bring down website clusters.",
+                    "The geospatial indexing of global standby disaster recovery data centers."
+                ],
+                correct: 0,
+                explanation: "Cohort charts isolate behavior by lifecycle group, pinpointing exactly which week or month users begin dropping off."
+            },
+            {
+                q: "30. How do you ensure that data visualizations within your reports are accessible and easy to read?",
+                options: [
+                    "By relying heavily on 3D effects, dozens of contrasting colors, and busy pie charts with thin slices.",
+                    "By eliminating visual noise, using descriptive headlines, and applying color strategically to highlight insights within 5 seconds.",
+                    "By delivering data as raw unformatted script lines to showcase advanced technical precision."
+                ],
+                correct: 1,
+                explanation: "Less is more. Clean, intent-driven layouts reduce cognitive load, allowing stakeholders to grasp insights almost instantly."
+            }
+        ];
+
+        let score = 0;
+        let answeredQuestions = 0;
+
+        function buildQuiz() {
+            const quizContainer = document.getElementById('quiz');
+            
+            questions.forEach((qData, qIndex) => {
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.id = `q-card-${qIndex}`;
+
+                const qText = document.createElement('div');
+                qText.className = 'question-text';
+                qText.innerText = qData.q;
+                card.appendChild(qText);
+
+                const optionsList = document.createElement('div');
+                optionsList.className = 'options-list';
+
+                qData.options.forEach((option, oIndex) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.innerText = option;
+                    btn.onclick = () => checkAnswer(qIndex, oIndex, btn);
+                    optionsList.appendChild(btn);
+                });
+
+                card.appendChild(optionsList);
+
+                const feedback = document.createElement('div');
+                feedback.className = 'feedback';
+                feedback.id = `feedback-${qIndex}`;
+                feedback.innerHTML = `<strong>Explanation:</strong> ${qData.explanation}`;
+                card.appendChild(feedback);
+
+                quizContainer.appendChild(card);
+            });
+        }
+
+        function checkAnswer(qIndex, selectedIndex, selectedBtn) {
+            const card = document.getElementById(`q-card-${qIndex}`);
+            const buttons = card.getElementsByClassName('option-btn');
+            const correctAnswerIndex = questions[qIndex].correct;
+            const feedback = document.getElementById(`feedback-${qIndex}`);
+
+            for (let btn of buttons) {
+                btn.disabled = true;
+            }
+
+            if (selectedIndex === correctAnswerIndex) {
+                selectedBtn.classList.add('correct');
+                score++;
+            } else {
+                selectedBtn.classList.add('incorrect');
+                buttons[correctAnswerIndex].classList.add('correct');
+            }
+
+            feedback.classList.add('show');
+
+            answeredQuestions++;
+            document.getElementById('score').innerText = score;
+            document.getElementById('total-answered').innerText = answeredQuestions;
+        }
+
+        buildQuiz();
+    </script>
+</body>
+</html>
